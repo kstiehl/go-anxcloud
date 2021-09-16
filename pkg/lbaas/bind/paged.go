@@ -11,11 +11,16 @@ import (
 )
 
 type BindPage struct {
-	Page       int        `json:"page"`
-	TotalItems int        `json:"total_items"`
-	TotalPages int        `json:"total_pages"`
-	Limit      int        `json:"limit"`
-	Data       []BindInfo `json:"data"`
+	Page        int                 `json:"page"`
+	TotalItems  int                 `json:"total_items"`
+	TotalPages  int                 `json:"total_pages"`
+	Limit       int                 `json:"limit"`
+	Data        []BindInfo          `json:"data"`
+	pageOptions []pagination.Option `json:"-"`
+}
+
+func (f BindPage) Options() []pagination.Option {
+	return f.pageOptions
 }
 
 func (f BindPage) Num() int {
@@ -30,7 +35,7 @@ func (f BindPage) Total() int {
 	return f.TotalPages
 }
 
-func (a api) GetPage(ctx context.Context, page, limit int) (pagination.Page, error) {
+func (a api) GetPage(ctx context.Context, page, limit int, opts ...pagination.Option) (pagination.Page, error) {
 	endpoint, err := url.Parse(a.client.BaseURL())
 	if err != nil {
 		return nil, fmt.Errorf("could not parse URL: %w", err)
@@ -69,7 +74,7 @@ func (a api) GetPage(ctx context.Context, page, limit int) (pagination.Page, err
 }
 
 func (a api) NextPage(ctx context.Context, page pagination.Page) (pagination.Page, error) {
-	return a.GetPage(ctx, page.Num(), page.Size())
+	return a.GetPage(ctx, page.Num(), page.Size(), page.Options()...)
 }
 
 func (f BindPage) Content() interface{} {

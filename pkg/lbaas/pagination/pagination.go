@@ -15,12 +15,18 @@ type Page interface {
 	Num() int
 	Size() int
 	Total() int
+	Options() []Option
 	Content() interface{}
+}
+
+type Option struct {
+	Name  string
+	Value string
 }
 
 // Pageable should be implemented by evey struct that supports pagination
 type Pageable interface {
-	GetPage(ctx context.Context, page, limit int) (Page, error)
+	GetPage(ctx context.Context, page, limit int, opts ...Option) (Page, error)
 	NextPage(ctx context.Context, page Page) (Page, error)
 }
 
