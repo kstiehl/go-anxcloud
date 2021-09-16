@@ -5,6 +5,9 @@ type Mode string
 const (
 	TCP  = Mode("tcp")
 	HTTP = Mode("http")
+
+	OptNameSearch = "search"
+	OptNameFilter = "filter"
 )
 
 type State string

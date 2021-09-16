@@ -24,7 +24,29 @@ type Option struct {
 	Value string
 }
 
-// Pageable should be implemented by evey struct that supports pagination
+// GetOption searches in the given options for an Option with the given name and returns a pointer to it or
+// nil if no Option name matched.
+func GetOption(opts []Option, name string) *Option {
+	for _, opt := range opts {
+		if opt.Name == name {
+			return &opt
+		}
+	}
+	return nil
+}
+
+// DelOption deletes the Option With the given name from the given Option slice and returns a new one.
+func DelOption(opts []Option, name string) []Option {
+	var newOpts []Option
+	for _, opt := range opts {
+		if opt.Name != name {
+			newOpts = append(newOpts, opt)
+		}
+	}
+	return newOpts
+}
+
+// Pageable should be implemented by evey struct that supports pagination.
 type Pageable interface {
 	GetPage(ctx context.Context, page, limit int, opts ...Option) (Page, error)
 	NextPage(ctx context.Context, page Page) (Page, error)
@@ -72,7 +94,7 @@ func LoopUntil(ctx context.Context, pageable Pageable, untilFunc UntilTrueFunc) 
 type CancelFunc func()
 
 // AsChan takes a Pageable and returns its Pageable.Content via a channel until there are no more pages or
-// CancelFunc gets called by the consumer
+// CancelFunc gets called by the consumer.
 func AsChan(ctx context.Context, pageable Pageable) (chan interface{}, CancelFunc) {
 	consumer := make(chan interface{})
 	done := make(chan interface{})

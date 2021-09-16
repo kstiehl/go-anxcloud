@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/anexia-it/go-anxcloud/pkg/lbaas/common"
 	"github.com/anexia-it/go-anxcloud/pkg/lbaas/pagination"
 	"net/http"
 	"net/url"
@@ -11,12 +12,12 @@ import (
 )
 
 type ServerPage struct {
-	Page        int                 `json:"page"`
-	TotalItems  int                 `json:"total_items"`
-	TotalPages  int                 `json:"total_pages"`
-	Limit       int                 `json:"limit"`
-	Data        []ServerInfo        `json:"data"`
-	pageOptions []pagination.Option `json:"-"`
+	Page        int          `json:"page"`
+	TotalItems  int          `json:"total_items"`
+	TotalPages  int          `json:"total_pages"`
+	Limit       int          `json:"limit"`
+	Data        []ServerInfo `json:"data"`
+	pageOptions []pagination.Option
 }
 
 func (f ServerPage) Options() []pagination.Option {
@@ -35,7 +36,7 @@ func (f ServerPage) Total() int {
 	return f.TotalPages
 }
 
-func (a api) GetPage(ctx context.Context, page, limit int, opt ...pagination.Option) (pagination.Page, error) {
+func (a api) GetPage(ctx context.Context, page, limit int, opts ...pagination.Option) (pagination.Page, error) {
 	endpoint, err := url.Parse(a.client.BaseURL())
 	if err != nil {
 		return nil, fmt.Errorf("could not parse URL: %w", err)
@@ -45,6 +46,14 @@ func (a api) GetPage(ctx context.Context, page, limit int, opt ...pagination.Opt
 	query := endpoint.Query()
 	query.Set("page", strconv.Itoa(page))
 	query.Set("limit", strconv.Itoa(limit))
+
+	if option := pagination.GetOption(opts, common.OptNameSearch); option != nil {
+		query.Set("search", option.Value)
+	}
+	if option := pagination.GetOption(opts, common.OptNameFilter); option != nil {
+		query.Set("filter", option.Value)
+	}
+
 	endpoint.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
@@ -70,6 +79,7 @@ func (a api) GetPage(ctx context.Context, page, limit int, opt ...pagination.Opt
 		return nil, fmt.Errorf("could not parse load balancer frontend list response: %w", err)
 	}
 
+	payload.Page.pageOptions = opts
 	return payload.Page, nil
 }
 
