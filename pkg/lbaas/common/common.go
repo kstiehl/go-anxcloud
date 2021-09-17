@@ -1,5 +1,7 @@
 package common
 
+import "github.com/anexia-it/go-anxcloud/pkg/lbaas/pagination"
+
 type Mode string
 
 const (
@@ -19,3 +21,10 @@ const (
 	Deployed        = State("3")
 	NewlyCreated    = State("4")
 )
+
+func SearchOpt(value string) pagination.Option {
+	return pagination.Option{
+		Name:  OptNameSearch,
+		Value: value,
+	}
+}

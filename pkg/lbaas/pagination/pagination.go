@@ -60,8 +60,8 @@ func HasNext(page Page) bool {
 type UntilTrueFunc func(interface{}) (bool, error)
 
 // LoopUntil takes a pageable and loops over it until untilFunc returns true or an error.
-func LoopUntil(ctx context.Context, pageable Pageable, untilFunc UntilTrueFunc) error {
-	page, err := pageable.GetPage(ctx, 1, 10)
+func LoopUntil(ctx context.Context, pageable Pageable, untilFunc UntilTrueFunc, opts ...Option) error {
+	page, err := pageable.GetPage(ctx, 1, 10, opts...)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ type CancelFunc func()
 
 // AsChan takes a Pageable and returns its Pageable.Content via a channel until there are no more pages or
 // CancelFunc gets called by the consumer.
-func AsChan(ctx context.Context, pageable Pageable) (chan interface{}, CancelFunc) {
+func AsChan(ctx context.Context, pageable Pageable, opts ...Option) (chan interface{}, CancelFunc) {
 	consumer := make(chan interface{})
 	done := make(chan interface{})
 	cancel := func() {
@@ -114,7 +114,7 @@ func AsChan(ctx context.Context, pageable Pageable) (chan interface{}, CancelFun
 				}
 			}
 			return false, nil
-		})
+		}, opts...)
 	}()
 	return consumer, cancel
 }
